@@ -7,15 +7,15 @@ import "os/signal"
 import "time"
 import kafka "github.com/Shopify/sarama"
 
-func producer(ints chan<- int32, duration time.Duration) {
+func producer(ints chan<- uint32,set []uint32, duration time.Duration) {
+	fmt.Println("launching...")
 	for {
-		rand_int := rand.Int31()
-		ints <- rand_int
+		ints <- set[rand.Intn(len(set))]
 		time.Sleep(duration)
 	}
 }
 
-func intToIP(i int32) string {
+func intToIP(i uint32) string {
 	a := (byte(i >> 24))
 	b := (byte(i >> 16))
 	c := (byte(i >> 8))
@@ -24,7 +24,7 @@ func intToIP(i int32) string {
 	return str
 }
 
-func consumer(src <-chan int32, dst <-chan int32, producer kafka.AsyncProducer) {
+func consumer(src <-chan uint32, dst <-chan uint32, producer kafka.AsyncProducer) {
 	topic := "test"
 	for {
 		src_ip := <-src
@@ -39,8 +39,8 @@ func consumer(src <-chan int32, dst <-chan int32, producer kafka.AsyncProducer) 
 
 func main() {
 	duration := 1 * time.Second
-	src := make(chan int32)
-	dst := make(chan int32)
+	src := make(chan uint32)
+	dst := make(chan uint32)
 	notify := make(chan os.Signal, 1)
 	signal.Notify(notify, os.Interrupt, os.Kill)
 
@@ -51,11 +51,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+  
+  srcs := []uint32{1625785863,1625785864,1625785865,1625785866,1625785867}
+  bads := []uint32{1979570743,3134782395}
 
-	go producer(src, duration)
-	go producer(dst, duration)
+
+	go producer(src, srcs,duration)
+	go producer(dst, bads,duration)
 	go consumer(src, dst, k_producer)
 
+	//you must read the producer.Successes() or else the producer will block.
 	go func(producer kafka.AsyncProducer) {
 		for {
 			<-producer.Successes()
@@ -65,5 +70,4 @@ func main() {
 	s := <-notify
 	fmt.Println("signal:", s)
 	fmt.Println("done.")
-
 }
