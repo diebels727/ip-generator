@@ -6,6 +6,8 @@ import "os"
 import "os/signal"
 import "time"
 import kafka "github.com/Shopify/sarama"
+import geoip "github.com/oschwald/geoip2-golang"
+import "net"
 
 func producer(ints chan<- uint32, set []uint32, duration time.Duration) {
 	fmt.Println("launching...")
@@ -25,13 +27,35 @@ func intToIP(i uint32) string {
 }
 
 func consumer(src <-chan uint32, dst <-chan uint32, producer kafka.AsyncProducer) {
-	topic := "test"
+	topic := "network"
+
+	db, err := geoip.Open("GeoLite2-City.mmdb")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer db.Close()
+
 	for {
 		src_ip := <-src
 		src_str := intToIP(src_ip)
 		dst_ip := <-dst
 		dst_str := intToIP(dst_ip)
-		str := src_str + "," + dst_str
+
+		src_ip_parsed := net.ParseIP(src_str)
+		dst_ip_parsed := net.ParseIP(dst_str)
+		src_record, err := db.City(src_ip_parsed)
+		if err != nil {
+			fmt.Println(err)
+		}
+		dst_record, err := db.City(dst_ip_parsed)
+		if err != nil {
+			fmt.Println(err)
+		}
+        src_coords := fmt.Sprintf("%v,%v",src_record.Location.Latitude, src_record.Location.Longitude)
+        dst_coords := fmt.Sprintf("%v,%v",dst_record.Location.Latitude, dst_record.Location.Longitude)
+	
+		str := src_str + "|" + dst_str + "|" + src_coords + "|" + dst_coords + "|" + time.Now().UTC().String()
+
 		message := kafka.ProducerMessage{Topic: topic, Value: kafka.StringEncoder(str)}
 		producer.Input() <- &message
 	}
