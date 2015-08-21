@@ -38,7 +38,7 @@ func consumer(src <-chan int32, dst <-chan int32, producer kafka.AsyncProducer) 
 }
 
 func main() {
-	duration := 1 * time.Second
+	duration := 50 * time.Millisecond
 	src := make(chan int32)
 	dst := make(chan int32)
 	notify := make(chan os.Signal, 1)
