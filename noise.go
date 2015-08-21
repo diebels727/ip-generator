@@ -13,7 +13,7 @@ func producer(ints chan<- int32, duration time.Duration) {
 	for {
 		rand_int := rand.Int31() 
 		ints <- rand_int
-		jitter := duration - time.Duration(rand.Int31n(999))*time.Millisecond
+		jitter := duration - time.Duration(rand.Int31n(int32(duration)))
 		time.Sleep(jitter)
 	}
 }
