@@ -7,7 +7,7 @@ import "os/signal"
 import "time"
 import kafka "github.com/Shopify/sarama"
 
-func producer(ints chan<- uint32,set []uint32, duration time.Duration) {
+func producer(ints chan<- uint32, set []uint32, duration time.Duration) {
 	fmt.Println("launching...")
 	for {
 		ints <- set[rand.Intn(len(set))]
@@ -51,13 +51,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-  
-  srcs := []uint32{1625785863,1625785864,1625785865,1625785866,1625785867}
-  bads := []uint32{1979570743,3134782395}
 
+	srcs := []uint32{1625785863, 1625785864, 1625785865, 1625785866, 1625785867}
+	bads := []uint32{1979570743, 3134782395}
 
-	go producer(src, srcs,duration)
-	go producer(dst, bads,duration)
+	go producer(src, srcs, duration)
+	go producer(dst, bads, duration)
 	go consumer(src, dst, k_producer)
 
 	//you must read the producer.Successes() or else the producer will block.
