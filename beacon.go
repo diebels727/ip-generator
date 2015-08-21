@@ -79,6 +79,8 @@ func main() {
 	srcs := []uint32{1625785863, 1625785864, 1625785865, 1625785866, 1625785867}
 	bads := []uint32{1979570743, 3134782395}
 
+    fmt.Println("src_ip,dst_ip,src_coord,dst_coord,received_at")
+
 	go producer(src, srcs, duration)
 	go producer(dst, bads, duration)
 	go consumer(src, dst, k_producer)

@@ -75,6 +75,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+    fmt.Println("src_ip,dst_ip,src_coord,dst_coord,received_at")
 
 	go producer(src, duration)
 	go producer(dst, duration)
