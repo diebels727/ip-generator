@@ -54,7 +54,8 @@ func consumer(src <-chan int32, dst <-chan int32, producer kafka.AsyncProducer) 
 		}
         src_coords := fmt.Sprintf("%v,%v",src_record.Location.Latitude, src_record.Location.Longitude)
         dst_coords := fmt.Sprintf("%v,%v",dst_record.Location.Latitude, dst_record.Location.Longitude)
-		str := src_str + "|" + dst_str + "|" + src_coords + "|" + dst_coords + "|" + time.Now().UTC().String()
+		str := src_str + "," + dst_str + "," + "\"" + src_coords + "\"" + "," + "\"" + dst_coords + "\"" + "," + time.Now().UTC().String()
+    fmt.Println(str)
 		message := kafka.ProducerMessage{Topic: topic, Value: kafka.StringEncoder(str)}
 		producer.Input() <- &message
 	}
