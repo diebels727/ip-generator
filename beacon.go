@@ -76,7 +76,8 @@ func main() {
 		panic(err)
 	}
 
-	srcs := []uint32{1625785863, 1625785864, 1625785865, 1625785866, 1625785867}
+    //srcs are data center IPs
+	srcs := []uint32{1222977025, 2212761857, 2169380865}
 	bads := []uint32{1979570743, 3134782395}
 
     fmt.Println("src_ip,dst_ip,src_coord,dst_coord,received_at")
