@@ -12,7 +12,8 @@ import geoip "github.com/oschwald/geoip2-golang"
 func producer(ints chan<- uint32, set []uint32, duration time.Duration) {
 	for {
 		var ip_int uint32
-		if (rand.Int() < 0) {
+		rand_bool := (rand.Float32() < 0.5)
+		if (rand_bool) {
 		  ip_int = rand.Uint32()
 		} else {
 		  ip_int = set[rand.Intn(len(set))]
@@ -73,7 +74,7 @@ func consumer(src <-chan uint32, dst <-chan uint32, producer kafka.AsyncProducer
 }
 
 func main() {
-	duration := 1000 * time.Millisecond
+	duration := 10 * time.Millisecond
 	src := make(chan uint32)
 	dst := make(chan uint32)
 	notify := make(chan os.Signal, 1)
