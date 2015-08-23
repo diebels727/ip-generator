@@ -66,8 +66,11 @@ func consumer(src <-chan uint32, dst <-chan uint32, producer kafka.AsyncProducer
         current_time := fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%02d-00:00",
           t.Year(), t.Month(), t.Day(),
           t.Hour(), t.Minute(), t.Second())
+        if ((src_coords == "0,0") || dst_coords == "0,0") {
+        	continue
+        }
 		str := src_str + "," + dst_str + "," + "\"" + src_coords + "\"" + "," + "\"" + dst_coords + "\"" + "," + current_time
-        fmt.Println(str)
+        //fmt.Println(str)
 		message := kafka.ProducerMessage{Topic: topic, Value: kafka.StringEncoder(str)}
 		producer.Input() <- &message
 	}
