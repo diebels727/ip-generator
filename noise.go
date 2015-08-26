@@ -8,15 +8,16 @@ import "time"
 import "net"
 import kafka "github.com/Shopify/sarama"
 import geoip "github.com/oschwald/geoip2-golang"
+import "flag"
 
 func producer(ints chan<- uint32, set []uint32, duration time.Duration) {
 	for {
 		var ip_int uint32
 		rand_bool := (rand.Float32() < 0.5)
-		if (rand_bool) {
-		  ip_int = rand.Uint32()
+		if rand_bool {
+			ip_int = rand.Uint32()
 		} else {
-		  ip_int = set[rand.Intn(len(set))]
+			ip_int = set[rand.Intn(len(set))]
 		}
 
 		ints <- ip_int
@@ -59,40 +60,41 @@ func consumer(src <-chan uint32, dst <-chan uint32, producer kafka.AsyncProducer
 		if err != nil {
 			fmt.Println(err)
 		}
-        src_coords := fmt.Sprintf("%v,%v",src_record.Location.Latitude, src_record.Location.Longitude)
-        dst_coords := fmt.Sprintf("%v,%v",dst_record.Location.Latitude, dst_record.Location.Longitude)
-        
-        t := time.Now()
-        current_time := fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%02d-00:00",
-          t.Year(), t.Month(), t.Day(),
-          t.Hour(), t.Minute(), t.Second())
-        if ((src_coords == "0,0") || dst_coords == "0,0") {
-        	continue
-        }
+		src_coords := fmt.Sprintf("[%v,%v]", src_record.Location.Latitude, src_record.Location.Longitude)
+		dst_coords := fmt.Sprintf("[%v,%v]", dst_record.Location.Latitude, dst_record.Location.Longitude)
+
+		t := time.Now()
+		current_time := fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%02d-00:00",
+			t.Year(), t.Month(), t.Day(),
+			t.Hour(), t.Minute(), t.Second())
+		if (src_coords == "0,0") || dst_coords == "0,0" {
+			continue
+		}
 		str := src_str + "," + dst_str + "," + "\"" + src_coords + "\"" + "," + "\"" + dst_coords + "\"" + "," + current_time
-        //fmt.Println(str)
+		fmt.Println(str)
 		message := kafka.ProducerMessage{Topic: topic, Value: kafka.StringEncoder(str)}
 		producer.Input() <- &message
 	}
 }
 
 func main() {
+	var host = flag.String("kafka", "127.0.0.1:9092", "IP address:port of kafka")
+	flag.Parse()
 	duration := 10 * time.Millisecond
 	src := make(chan uint32)
 	dst := make(chan uint32)
 	notify := make(chan os.Signal, 1)
 	signal.Notify(notify, os.Interrupt, os.Kill)
 
-	host := "127.0.0.1:9092"
 	config := kafka.NewConfig()
 	config.Producer.Return.Successes = true
-	k_producer, err := kafka.NewAsyncProducer([]string{host}, config)
+	k_producer, err := kafka.NewAsyncProducer([]string{*host}, config)
 	if err != nil {
 		panic(err)
 	}
-    fmt.Println("src_ip,dst_ip,src_coord,dst_coord,received_at")
+	fmt.Println("src_ip,dst_ip,src_coord,dst_coord,received_at")
 
-    //dc_ips are data center IPs
+	//dc_ips are data center IPs
 	dc_ips := []uint32{1222977025, 2212761857, 2169380865}
 
 	go producer(src, dc_ips, duration)
